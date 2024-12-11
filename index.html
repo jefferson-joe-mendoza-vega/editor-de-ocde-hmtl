@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Código Profesional</title>
+    <style>
+        :root {
+            --bg-dark: #1e1e1e;
+            --sidebar-dark: #252526;
+            --accent-blue: #007acc;
+            --text-light: #eaeaea;
+            --button-hover: #3a3d41;
+            --button-active: #007acc;
+            --preview-bg: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: #3a3d41 var(--bg-dark);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            height: 100vh;
+            color: var(--text-light);
+            background-color: var(--bg-dark);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 60px;
+            background-color: var(--sidebar-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            transition: width 0.3s;
+        }
+
+        .sidebar-button {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .sidebar-button span {
+            position: absolute;
+            left: 50px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar-button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-dark);
+            padding: 20px;
+        }
+
+        .tabs {
+            background-color: var(--sidebar-dark);
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            gap: 5px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background-color: var(--accent-blue);
+        }
+
+        .tab:hover {
+            background-color: var(--button-hover);
+        }
+
+        .editor-area {
+            flex: 1;
+            display: none;
+            position: relative;
+        }
+
+        .editor-area.active {
+            display: block;
+        }
+
+        .code-editor {
+            width: 100%;
+            height: 90vh;
+            padding: 15px;
+            border: none;
+            resize: none;
+            font-family: 'Consolas', monospace;
+            font-size: 16px;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .preview {
+            width: 0;
+            background: var(--preview-bg);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s;
+            height: 90vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+        }
+
+        .preview-header {
+            background-color: var(--sidebar-dark);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        iframe {
+            flex: 1;
+            border: none;
+        }
+
+        .preview.full-preview {
+            width: 40%;
+        }
+
+        .editor.full-editor {
+            display: none;
+            width: 100%;
+        }
+
+        .auto-save-indicator {
+            font-size: 12px;
+            color: #7fba00;
+            margin-right: 10px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .auto-save-indicator.visible {
+            opacity: 1;
+        }
+
+        /* Media Queries para Responsividad */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 60px;
+                height: auto;
+                align-items: flex-start;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+
+            .tab {
+                font-size: 12px;
+                padding: 5px;
+            }
+
+            .sidebar-button {
+                margin-bottom: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .preview {
+                height: 40vh;
+            }
+
+            .code-editor {
+                font-size: 12px;
+                height: 50vh;
+            }
+
+            .tabs {
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .sidebar-button {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <button class="sidebar-button" onclick="createFile()">➕ </button>
+        <div class="auto-save-indicator" id="autoSaveIndicator">✓ Guardado</div>
+        <button class="sidebar-button" onclick="togglePreview()">👁️</button>
+    </div>
+
+    <div class="editor">
+        <div class="tabs" id="tabs"></div>
+        <div id="editor-areas"></div>
+    </div>
+
+    <div class="preview">
+        <div class="preview-header">
+            Vista Previa
+            <div>
+                <button onclick="openPreviewInNewTab()">Abrir 🔗</button>
+                <button onclick="toggleFullPreview()">Expandir 🖥️</button>
+            </div>
+        </div>
+        <iframe id="preview"></iframe>
+    </div>
+
+    <script>
+        class CodeEditor {
+            constructor() {
+                this.files = {};
+                this.activeFile = null;
+                this.autoSaveTimer = null;
+                this.initialize();
+            }
+
+            initialize() {
+                this.loadInitialFiles();
+            }
+
+            async saveFiles() {
+                localStorage.setItem('files', JSON.stringify(this.files));
+            }
+
+            async loadInitialFiles() {
+                this.files = JSON.parse(localStorage.getItem('files') || '{}');
+                this.renderTabs();
+                if (Object.keys(this.files).length > 0) {
+                    this.switchToFile(Object.keys(this.files)[0]);
+                }
+            }
+
+            createFile() {
+                const fileName = prompt('Nombre del archivo (ej: index.html):');
+                if (!fileName || this.files[fileName]) return;
+
+                this.files[fileName] = '';
+                this.renderTabs();
+                this.switchToFile(fileName);
+                this.triggerAutoSave();
+            }
+
+            renderTabs() {
+                const tabContainer = document.getElementById('tabs');
+                tabContainer.innerHTML = '';
+                Object.keys(this.files).forEach(fileName => {
+                    const tab = document.createElement('button');
+                    tab.textContent = fileName;
+                    tab.className = `tab ${fileName === this.activeFile ? 'active' : ''}`;
+                    tab.onclick = () => this.switchToFile(fileName);
+                    tabContainer.appendChild(tab);
+                });
+            }
+
+            switchToFile(fileName) {
+                const editorAreas = document.getElementById('editor-areas');
+                editorAreas.innerHTML = '';
+
+                const textarea = document.createElement('textarea');
+                textarea.className = 'code-editor';
+                textarea.value = this.files[fileName];
+                textarea.addEventListener('input', (e) => this.updateFileContent(fileName, e.target.value));
+
+                const editorArea = document.createElement('div');
+                editorArea.className = 'editor-area active';
+                editorArea.appendChild(textarea);
+                editorAreas.appendChild(editorArea);
+
+                this.activeFile = fileName;
+                this.renderTabs();
+                this.updatePreview();
+            }
+
+            updateFileContent(fileName, content) {
+                this.files[fileName] = content;
+                this.updatePreview();
+                this.triggerAutoSave();
+            }
+
+            updatePreview() {
+                const html = this.files['index.html'] || '';
+                const css = `<style>${this.files['styles.css'] || ''}</style>`;
+                const js = `<script>${this.files['script.js'] || ''}<\/script>`;
+                const content = `${html}\n${css}\n${js}`;
+
+                const iframe = document.getElementById('preview');
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write(content);
+                doc.close();
+            }
+
+            triggerAutoSave() {
+                clearTimeout(this.autoSaveTimer);
+                const indicator = document.getElementById('autoSaveIndicator');
+                indicator.classList.add('visible');
+                this.autoSaveTimer = setTimeout(() => {
+                    indicator.classList.remove('visible');
+                    this.saveFiles();
+                }, 2000);
+            }
+
+            togglePreview() {
+                const preview = document.querySelector('.preview');
+                preview.classList.toggle('full-preview');
+            }
+
+            openPreviewInNewTab() {
+                const htmlContent = this.files['index.html'] || '';
+                const cssContent = this.files['styles.css'] || '';
+                const jsContent = this.files['script.js'] || '';
+                const content = `${htmlContent}<style>${cssContent}</style><script>${jsContent}<\/script>`;
+                const newWindow = window.open();
+                newWindow.document.write(content);
+                newWindow.document.close();
+            }
+        }
+
+        const editor = new CodeEditor();
+
+        function togglePreview() {
+            editor.togglePreview();
+        }
+
+        function openPreviewInNewTab() {
+            editor.openPreviewInNewTab();
+        }
+    </script>
+</body>
+</html>
