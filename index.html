@@ -13,6 +13,7 @@
             --button-hover: #3a3d41;
             --button-active: #007acc;
             --preview-bg: #333;
+            --input-bg: #333;
         }
 
         * {
@@ -35,6 +36,7 @@
             display: flex;
             width: 100%;
             height: 100%;
+            transition: margin-left 0.3s;
         }
 
         .sidebar {
@@ -44,7 +46,7 @@
             flex-direction: column;
             align-items: center;
             padding: 10px 0;
-            transition: none;
+            transition: width 0.3s;
         }
 
         .sidebar-button {
@@ -59,18 +61,23 @@
             justify-content: center;
             margin-bottom: 10px;
             position: relative;
-        }
-
-        .sidebar-button span {
-            position: absolute;
-            left: 50px;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.3s;
+            font-size: 20px;
         }
 
         .sidebar-button:hover {
             background-color: var(--button-hover);
+        }
+
+        .auto-save-indicator {
+            font-size: 12px;
+            color: #7fba00;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .auto-save-indicator.visible {
+            opacity: 1;
         }
 
         .editor {
@@ -79,6 +86,7 @@
             flex-direction: column;
             background-color: var(--bg-dark);
             padding: 20px;
+            overflow: hidden;
         }
 
         .tabs {
@@ -88,6 +96,7 @@
             padding: 5px;
             gap: 5px;
             overflow-x: auto;
+            flex-shrink: 0;
         }
 
         .tab {
@@ -98,6 +107,9 @@
             cursor: pointer;
             font-size: 14px;
             white-space: nowrap;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            position: relative;
         }
 
         .tab.active {
@@ -112,6 +124,7 @@
             flex: 1;
             display: none;
             position: relative;
+            overflow: auto;
         }
 
         .editor-area.active {
@@ -120,7 +133,7 @@
 
         .code-editor {
             width: 100%;
-            height: 90vh;
+            height: 79vh;
             padding: 15px;
             border: none;
             resize: none;
@@ -129,6 +142,7 @@
             background-color: var(--bg-dark);
             color: var(--text-light);
             line-height: 1.5;
+            outline: none;
         }
 
         .preview {
@@ -138,6 +152,8 @@
             flex-direction: column;
             transition: width 0.3s;
             height: 90vh;
+            margin-left: 10px;
+            display: none;
         }
 
         .preview-header {
@@ -146,11 +162,28 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
+        }
+
+        .preview-header button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .preview-header button:hover {
+            color: var(--accent-blue);
         }
 
         iframe {
             flex: 1;
             border: none;
+            width: 100%;
+            height: 100%;
         }
 
         .preview.full-preview {
@@ -161,97 +194,65 @@
             display: none;
         }
 
-        .auto-save-indicator {
+        .menu-options {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--sidebar-dark);
+            padding: 5px;
+            border-radius: 4px;
+            display: none;
+            flex-direction: column;
+        }
+
+        .menu-options button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            padding: 5px;
+            cursor: pointer;
             font-size: 12px;
-            color: #7fba00;
-            margin-right: 10px;
-            opacity: 0;
-            transition: opacity 0.5s;
         }
 
-        .auto-save-indicator.visible {
-            opacity: 1;
+        .tab:hover .menu-options {
+            display: flex;
         }
 
-        /* Media Queries para Responsividad */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 60px;
-                height: auto;
-                align-items: flex-start;
-            }
-
-            .preview {
-                width: 100%;
-                height: 50vh;
-            }
-
-            .code-editor {
-                font-size: 14px;
-                height: 50vh;
-            }
-
-            .tabs {
-                flex-wrap: wrap;
-                justify-content: flex-start;
-            }
-
-            .tab {
-                font-size: 12px;
-                padding: 5px;
-            }
-
-            .sidebar-button {
-                margin-bottom: 5px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .preview {
-                height: 40vh;
-            }
-
-            .code-editor {
-                font-size: 12px;
-                height: 40vh;
-            }
-
-            .tabs {
-                flex-direction: column;
-                gap: 2px;
-            }
-
-            .sidebar-button {
-                width: 30px;
-                height: 30px;
-            }
+        .file-name-input {
+            background: var(--input-bg);
+            color: var(--text-light);
+            border: 1px solid var(--accent-blue);
+            padding: 5px;
+            margin-top: 5px;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <button class="sidebar-button" onclick="createFile()">➕ </button>
-        <div class="auto-save-indicator" id="autoSaveIndicator">✓ Guardado</div>
-    </div>
-
-    <div class="editor">
-        <div class="tabs" id="tabs"></div>
-        <div id="editor-areas"></div>
-    </div>
-
-    <div class="preview">
-        <div class="preview-header">
-            Vista Previa
-            <div>
-                <button onclick="openPreviewInNewTab()">Abrir 🔗</button>
-                <button onclick="toggleFullPreview()">Expandir 🖥️</button>
-            </div>
+    <div class="container">
+        <div class="sidebar">
+            <button class="sidebar-button" onclick="createFile()" data-tooltip="Crear Archivo">➕</button>
+            <div class="auto-save-indicator" id="autoSaveIndicator">✓ Guardado</div>
+            <button class="sidebar-button" onclick="togglePreview()" data-tooltip="Vista Previa">👁️</button>
         </div>
-        <iframe id="preview"></iframe>
+
+        <div class="editor">
+            <div class="tabs" id="tabs"></div>
+            <div id="editor-areas" style="flex: 1; overflow: hidden;"></div>
+        </div>
+
+        <div class="preview" id="preview-container">
+            <div class="preview-header">
+                Vista Previa
+                <div>
+                    <button onclick="openPreviewInNewTab()">🔗</button>
+                    <button onclick="toggleFullPreview()">🖥️</button>
+                </div>
+            </div>
+            <iframe id="preview"></iframe>
+        </div>
     </div>
 
     <script>
@@ -260,6 +261,7 @@
                 this.files = {};
                 this.activeFile = null;
                 this.autoSaveTimer = null;
+                this.debounceSave = this.debounce(this.saveFiles.bind(this), 1000);
                 this.initialize();
             }
 
@@ -267,26 +269,56 @@
                 this.loadInitialFiles();
             }
 
-            async saveFiles() {
-                localStorage.setItem('files', JSON.stringify(this.files));
+            debounce(func, delay) {
+                let timer;
+                return function(...args) {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => func.apply(this, args), delay);
+                };
             }
 
-            async loadInitialFiles() {
-                this.files = JSON.parse(localStorage.getItem('files') || '{}');
+            saveFiles() {
+                try {
+                    localStorage.setItem('files', JSON.stringify(this.files));
+                    this.showAutoSaveIndicator();
+                } catch (e) {
+                    console.error('Error al guardar los archivos:', e);
+                }
+            }
+
+            loadInitialFiles() {
+                const storedFiles = JSON.parse(localStorage.getItem('files') || '{}');
+                this.files = storedFiles;
                 this.renderTabs();
-                if (Object.keys(this.files).length > 0) {
-                    this.switchToFile(Object.keys(this.files)[0]);
+                const fileNames = Object.keys(this.files);
+                if (fileNames.length > 0) {
+                    this.switchToFile(fileNames[0]);
+                } else {
+                    this.createFile();
                 }
             }
 
             createFile() {
                 const fileName = prompt('Nombre del archivo (ej: index.html):');
-                if (!fileName || this.files[fileName]) return;
+                if (!fileName) return;
+
+                const validExtensions = ['.html', '.css', '.js'];
+                const hasValidExtension = validExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+
+                if (!hasValidExtension) {
+                    alert('Por favor, utiliza una extensión válida (.html, .css, .js).');
+                    return;
+                }
+
+                if (this.files[fileName]) {
+                    alert('Este archivo ya existe.');
+                    return;
+                }
 
                 this.files[fileName] = '';
                 this.renderTabs();
                 this.switchToFile(fileName);
-                this.triggerAutoSave();
+                this.debounceSave();
             }
 
             renderTabs() {
@@ -297,62 +329,90 @@
                     tab.textContent = fileName;
                     tab.className = `tab ${fileName === this.activeFile ? 'active' : ''}`;
                     tab.onclick = () => this.switchToFile(fileName);
+
+                    // Crear el menú con las opciones de editar y eliminar
+                    const menuOptions = document.createElement('div');
+                    menuOptions.className = 'menu-options';
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Editar Nombre';
+                    editButton.onclick = () => this.editFileName(fileName);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Eliminar';
+                    deleteButton.onclick = () => this.deleteFile(fileName);
+
+                    menuOptions.appendChild(editButton);
+                    menuOptions.appendChild(deleteButton);
+                    tab.appendChild(menuOptions);
+
                     tabContainer.appendChild(tab);
                 });
             }
 
             switchToFile(fileName) {
+                if (this.activeFile === fileName) return;
+
+                this.activeFile = fileName;
+                this.renderTabs();
+
                 const editorAreas = document.getElementById('editor-areas');
                 editorAreas.innerHTML = '';
 
                 const textarea = document.createElement('textarea');
                 textarea.className = 'code-editor';
                 textarea.value = this.files[fileName];
-                textarea.addEventListener('input', (e) => this.updateFileContent(fileName, e.target.value));
+                textarea.addEventListener('input', (e) => {
+                    this.updateFileContent(fileName, e.target.value);
+                });
 
                 const editorArea = document.createElement('div');
                 editorArea.className = 'editor-area active';
                 editorArea.appendChild(textarea);
                 editorAreas.appendChild(editorArea);
 
-                this.activeFile = fileName;
-                this.renderTabs();
                 this.updatePreview();
             }
 
             updateFileContent(fileName, content) {
                 this.files[fileName] = content;
                 this.updatePreview();
-                this.triggerAutoSave();
+                this.debounceSave();
             }
 
             updatePreview() {
                 const html = this.files['index.html'] || '';
-                const css = `<style>${this.files['styles.css'] || ''}</style>`;
-                const js = `<script>${this.files['script.js'] || ''}<\/script>`;
-                const content = `${html}\n${css}\n${js}`;
+                const css = this.files['styles.css'] || '';
+                const js = this.files['script.js'] || '';
+                const content = `${html}\n<style>${css}</style>\n<script>${js}<\/script>`;
 
                 const iframe = document.getElementById('preview');
-                const doc = iframe.contentWindow.document;
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
                 doc.open();
                 doc.write(content);
                 doc.close();
             }
 
-            triggerAutoSave() {
-                clearTimeout(this.autoSaveTimer);
+            showAutoSaveIndicator() {
                 const indicator = document.getElementById('autoSaveIndicator');
                 indicator.classList.add('visible');
-                this.autoSaveTimer = setTimeout(() => {
-                    this.saveFiles();
+                setTimeout(() => {
                     indicator.classList.remove('visible');
                 }, 2000);
             }
 
             openPreviewInNewTab() {
-                const iframe = document.getElementById('preview');
-                const url = iframe.src;
+                const html = this.files['index.html'] || '';
+                const css = this.files['styles.css'] || '';
+                const js = this.files['script.js'] || '';
+                const content = `${html}\n<style>${css}</style>\n<script>${js}<\/script>`;
+
+                const blob = new Blob([content], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
+
+                setTimeout(() => {
+                    URL.revokeObjectURL(url);
+                }, 1000);
             }
 
             toggleFullPreview() {
@@ -361,10 +421,53 @@
                 preview.classList.toggle('full-preview');
                 editor.classList.toggle('full-editor');
             }
+
+            togglePreview() {
+                const preview = document.getElementById('preview-container');
+                preview.style.display = preview.style.display === 'none' ? 'flex' : 'none';
+            }
+
+            editFileName(fileName) {
+                const newName = prompt('Nuevo nombre de archivo:', fileName);
+                if (!newName || newName === fileName) return;
+
+                const validExtensions = ['.html', '.css', '.js'];
+                const hasValidExtension = validExtensions.some(ext => newName.toLowerCase().endsWith(ext));
+
+                if (!hasValidExtension) {
+                    alert('Por favor, utiliza una extensión válida (.html, .css, .js).');
+                    return;
+                }
+
+                const newFiles = { ...this.files };
+                newFiles[newName] = newFiles[fileName];
+                delete newFiles[fileName];
+
+                this.files = newFiles;
+                this.renderTabs();
+                this.switchToFile(newName);
+                this.debounceSave();
+            }
+
+            deleteFile(fileName) {
+                if (confirm(`¿Estás seguro de que quieres eliminar "${fileName}"?`)) {
+                    delete this.files[fileName];
+                    this.renderTabs();
+                    if (this.activeFile === fileName) {
+                        this.activeFile = null;
+                    }
+                    this.debounceSave();
+                }
+            }
         }
 
         const editor = new CodeEditor();
+
+        // Exponer las funciones al ámbito global para que los botones puedan acceder a ellas
         const createFile = () => editor.createFile();
+        const openPreviewInNewTab = () => editor.openPreviewInNewTab();
+        const toggleFullPreview = () => editor.toggleFullPreview();
+        const togglePreview = () => editor.togglePreview();
     </script>
 </body>
 </html>
