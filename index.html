@@ -1,534 +1,556 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor de Código</title>
-    <style>
-        /* Estilos generales */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #1a1a1a;
-            color: #fff;
-            height: 100vh;
-            display: flex;
-        }
-
-        /* Estilos de la barra lateral */
-        .sidebar {
-            width: 250px;
-            background-color: #252526;
-            border-right: 1px solid #3c3c3c;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-header {
-            padding: 1rem;
-            border-bottom: 1px solid #3c3c3c;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .file-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0.5rem;
-        }
-
-        .folder {
-            margin-bottom: 0.5rem;
-        }
-
-        .folder-header {
-            padding: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #2d2d2d;
-            border-radius: 4px;
-        }
-
-        .folder-header:hover {
-            background-color: #3c3c3c;
-        }
-
-        .folder-content {
-            margin-left: 1rem;
-            margin-top: 0.5rem;
-        }
-
-        .file-item {
-            padding: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 4px;
-        }
-
-        .file-item:hover {
-            background-color: #3c3c3c;
-        }
-
-        .file-item.active {
-            background-color: #094771;
-        }
-
-        /* Estilos del contenido principal */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .toolbar {
-            padding: 1rem;
-            background-color: #252526;
-            border-bottom: 1px solid #3c3c3c;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .editor-container {
-            flex: 1;
-            display: flex;
-            height: calc(100vh - 70px); /* Ajusta según la altura de la toolbar */
-        }
-
-        .editor {
-            width: 100%;
-            height: 100%;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            font-family: 'Consolas', monospace;
-            border: none;
-            padding: 1rem;
-            resize: none;
-            outline: none;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .preview-container {
-            display: none;
-            width: 50%;
-            background-color: white;
-            border-left: 1px solid #3c3c3c;
-            position: relative; /* Para posicionar el botón de pantalla completa */
-        }
-
-        .preview-container.visible {
-            display: block;
-        }
-
-        .preview-frame {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Estilos de los botones */
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            background-color: #2d2d2d;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: background-color 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #3c3c3c;
-        }
-
-        .btn-primary {
-            background-color: #0e639c;
-        }
-
-        .btn-primary:hover {
-            background-color: #1177bb;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* Iconos */
-        .icon {
-            width: 16px;
-            height: 16px;
-            fill: currentColor;
-        }
-
-        /* Botón de pantalla completa */
-        .fullscreen-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(45, 45, 45, 0.8);
-            color: #fff;
-            border: none;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            transition: background-color 0.3s;
-        }
-
-        .fullscreen-btn:hover {
-            background-color: rgba(60, 60, 60, 0.8);
-        }
-
-        /* Mensaje de estado */
-        .status-message {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            padding: 0.5rem 1rem;
-            background-color: #2d2d2d;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .status-message.visible {
-            opacity: 1;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de Código Moderno</title>
+  <!-- CodeMirror CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+  <style>
+    /* Reset y configuración base */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+    /* Contenedor principal */
+    .container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    /* Barra lateral */
+    .sidebar {
+      width: 250px;
+      background-color: #1f1f1f;
+      border-right: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+    .sidebar-header {
+      padding: 1rem;
+      background-color: #272727;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-header h2 {
+      font-size: 1.2rem;
+    }
+    .file-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem;
+    }
+    .folder {
+      margin-bottom: 0.5rem;
+    }
+    .folder-header {
+      padding: 0.5rem;
+      cursor: pointer;
+      background-color: #2a2a2a;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    .folder-header:hover {
+      background-color: #3a3a3a;
+    }
+    /* Contenedor desplegable con animación */
+    .folder-content {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.5s ease, opacity 0.5s ease;
+      margin-left: 1rem;
+    }
+    .folder-content.open {
+      max-height: 500px; /* valor suficientemente alto para el contenido */
+      opacity: 1;
+      margin-top: 0.5rem;
+    }
+    .file-item {
+      padding: 0.5rem;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    .file-item:hover {
+      background-color: #3a3a3a;
+    }
+    .file-item.active {
+      background-color: #0e639c;
+    }
+    /* Contenido principal */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .toolbar {
+      padding: 1rem;
+      background-color: #1f1f1f;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .toolbar .active-file {
+      font-weight: bold;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    /* Estilos de botones */
+    .btn {
+      padding: 0.5rem 1rem;
+      background-color: #2a2a2a;
+      border: none;
+      border-radius: 4px;
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #3a3a3a;
+    }
+    .btn-primary {
+      background-color: #0e639c;
+    }
+    .btn-primary:hover {
+      background-color: #1177bb;
+    }
+    /* Iconos (vectores escalables) */
+    .icon {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+    /* Contenedor del editor y previsualización */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    /* Se oculta el textarea original (CodeMirror lo reemplaza) */
+    textarea.editor {
+      display: none;
+    }
+    .CodeMirror {
+      height: 100%;
+      width: 100%;
+      font-size: 14px;
+    }
+    .preview-container {
+      display: none;
+      width: 50%;
+      background-color: #fff;
+      border-left: 1px solid #ccc;
+      position: relative;
+    }
+    .preview-container.visible {
+      display: block;
+    }
+    .preview-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    /* Botón de pantalla completa para previsualización */
+    .fullscreen-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(45, 45, 45, 0.8);
+      color: #fff;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: background-color 0.3s;
+      z-index: 1;
+    }
+    .fullscreen-btn:hover {
+      background-color: rgba(60, 60, 60, 0.8);
+    }
+    /* Mensaje de estado */
+    .status-message {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #2a2a2a;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      color: #fff;
+    }
+    .status-message.visible {
+      opacity: 1;
+    }
+    /* Estilos para dispositivos móviles */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+      .container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid #333;
+      }
+      .main-content {
+        flex: 1;
+      }
+      .editor-container {
+        flex-direction: column;
+      }
+      .CodeMirror {
+        height: 50vh;
+      }
+      .preview-container {
+        width: 100%;
+        height: 50vh;
+        border-left: none;
+        border-top: 1px solid #ccc;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
     <!-- Barra lateral -->
     <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>Archivos</h2>
-            <button class="btn" onclick="crearCarpeta()" title="Agregar Carpeta">
-                <svg class="icon" viewBox="0 0 24 24">
-                    <path d="M20 5h-8.586L9.707 3.293A.997.997 0 0 0 9 3H4c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V7c0-1.103-.897-2-2-2zm-2 9h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/>
-                </svg>
-            </button>
-        </div>
-        <div class="file-list" id="fileList"></div>
+      <div class="sidebar-header">
+        <h2>Archivos</h2>
+        <button class="btn" onclick="crearCarpeta()" title="Agregar Carpeta">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M20 5h-8.586L9.707 3.293A.997.997 0 0 0 9 3H4c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V7c0-1.103-.897-2-2-2zm-2 9h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="file-list" id="fileList"></div>
     </div>
 
     <!-- Contenido principal -->
     <div class="main-content">
-        <div class="toolbar">
-            <div id="activeFileName" class="active-file">Ningún archivo seleccionado</div>
-            <div class="btn-group">
-                <button class="btn" onclick="crearArchivo()" title="Agregar Archivo">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                    Nuevo Archivo
-                </button>
-                <button class="btn btn-primary" onclick="togglePreview()" title="Previsualizar">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    Previsualizar
-                </button>
-            </div>
+      <div class="toolbar">
+        <div id="activeFileName" class="active-file">Ningún archivo seleccionado</div>
+        <div class="btn-group">
+          <button class="btn" onclick="crearArchivo()" title="Agregar Archivo">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            Nuevo Archivo
+          </button>
+          <button class="btn btn-primary" onclick="togglePreview()" title="Previsualizar">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            Previsualizar
+          </button>
         </div>
-        <div class="editor-container">
-            <textarea id="editor" class="editor" spellcheck="false" placeholder="Escribe tu código aquí..."></textarea>
-            <div id="preview" class="preview-container">
-                <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Pantalla Completa">
-                    <svg class="icon" viewBox="0 0 24 24">
-                        <path d="M4 4h7V2H2v9h2V4zm16 0v5h2V2h-9v2h7v7h-2V9h-5V7h7zM4 20v-7H2v9h9v-2H4zm16-9v7h-7v2h9v-9h-2z"/>
-                    </svg>
-                    Pantalla Completa
-                </button>
-                <iframe id="previewFrame" class="preview-frame"></iframe>
-            </div>
+      </div>
+      <div class="editor-container">
+        <!-- Textarea que será transformado por CodeMirror -->
+        <textarea id="editor" class="editor" spellcheck="false" placeholder="Escribe tu código aquí..."></textarea>
+        <div id="preview" class="preview-container">
+          <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Pantalla Completa">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="M4 4h7V2H2v9h2V4zm16 0v5h2V2h-9v2h7v7h-2V9h-5V7h7zM4 20v-7H2v9h9v-2H4zm16-9v7h-7v2h9v-9h-2z"/>
+            </svg>
+            Pantalla Completa
+          </button>
+          <iframe id="previewFrame" class="preview-frame"></iframe>
         </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Mensaje de estado -->
-    <div id="statusMessage" class="status-message"></div>
+  <!-- Mensaje de estado -->
+  <div id="statusMessage" class="status-message"></div>
 
-    <script>
-        // Estructura de datos para almacenar archivos y carpetas
-        let proyecto = {
-            carpetas: []
+  <!-- CodeMirror JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+
+  <script>
+    // Estructura de datos para almacenar archivos y carpetas
+    let proyecto = {
+      carpetas: []
+    };
+
+    let carpetaActiva = null;
+    let archivoActivo = null;
+    let codeMirrorEditor; // Variable para el editor CodeMirror
+
+    // Cargar datos guardados desde localStorage
+    function cargarDatosGuardados() {
+      const guardado = localStorage.getItem('editorCodigoData');
+      if (guardado) {
+        proyecto = JSON.parse(guardado);
+        renderizarListaArchivos();
+      }
+    }
+
+    // Guardar datos en localStorage
+    function guardarDatos() {
+      localStorage.setItem('editorCodigoData', JSON.stringify(proyecto));
+      mostrarEstado('Cambios guardados');
+    }
+
+    // Mostrar mensaje de estado
+    function mostrarEstado(mensaje) {
+      const estado = document.getElementById('statusMessage');
+      estado.textContent = mensaje;
+      estado.classList.add('visible');
+      setTimeout(() => {
+        estado.classList.remove('visible');
+      }, 2000);
+    }
+
+    // Crear una nueva carpeta
+    function crearCarpeta() {
+      const nombre = prompt('Ingrese el nombre de la carpeta:');
+      if (nombre) {
+        const existe = proyecto.carpetas.some(carpeta => carpeta.nombre === nombre);
+        if (existe) {
+          alert('Ya existe una carpeta con ese nombre.');
+          return;
+        }
+        proyecto.carpetas.push({
+          id: Date.now().toString(),
+          nombre,
+          archivos: []
+        });
+        guardarDatos();
+        renderizarListaArchivos();
+      }
+    }
+
+    // Crear un nuevo archivo
+    function crearArchivo() {
+      if (!carpetaActiva) {
+        alert('Por favor, selecciona una carpeta primero.');
+        return;
+      }
+      const nombre = prompt('Ingrese el nombre del archivo (incluya la extensión: .html, .css o .js):');
+      if (!nombre) return;
+      const extension = nombre.split('.').pop()?.toLowerCase();
+      if (!['html', 'css', 'js'].includes(extension)) {
+        alert('Solo se soportan archivos con extensiones .html, .css y .js');
+        return;
+      }
+      const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
+      if (carpeta) {
+        const existe = carpeta.archivos.some(a => a.nombre === nombre);
+        if (existe) {
+          alert('Ya existe un archivo con ese nombre en la carpeta seleccionada.');
+          return;
+        }
+        const nuevoArchivo = {
+          id: Date.now().toString(),
+          nombre,
+          contenido: '',
+          tipo: extension
         };
+        carpeta.archivos.push(nuevoArchivo);
+        guardarDatos();
+        renderizarListaArchivos();
+        setArchivoActivo(nuevoArchivo.id);
+      }
+    }
 
-        let carpetaActiva = null;
-        let archivoActivo = null;
-
-        // Cargar datos guardados desde localStorage
-        function cargarDatosGuardados() {
-            const guardado = localStorage.getItem('editorCodigoData');
-            if (guardado) {
-                proyecto = JSON.parse(guardado);
-                renderizarListaArchivos();
-            }
+    // Eliminar un archivo
+    function eliminarArchivo(idArchivo) {
+      if (!confirm('¿Está seguro de que desea eliminar este archivo?')) return;
+      const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
+      if (carpeta) {
+        carpeta.archivos = carpeta.archivos.filter(a => a.id !== idArchivo);
+        if (archivoActivo === idArchivo) {
+          setArchivoActivo(null);
         }
+        guardarDatos();
+        renderizarListaArchivos();
+      }
+    }
 
-        // Guardar datos en localStorage
-        function guardarDatos() {
-            localStorage.setItem('editorCodigoData', JSON.stringify(proyecto));
-            mostrarEstado('Cambios guardados');
-        }
+    // Eliminar una carpeta
+    function eliminarCarpeta(idCarpeta) {
+      if (!confirm('¿Está seguro de que desea eliminar esta carpeta y todos sus archivos?')) return;
+      proyecto.carpetas = proyecto.carpetas.filter(c => c.id !== idCarpeta);
+      if (carpetaActiva === idCarpeta) {
+        carpetaActiva = null;
+        setArchivoActivo(null);
+      }
+      guardarDatos();
+      renderizarListaArchivos();
+    }
 
-        // Mostrar mensaje de estado
-        function mostrarEstado(mensaje) {
-            const estado = document.getElementById('statusMessage');
-            estado.textContent = mensaje;
-            estado.classList.add('visible');
-            setTimeout(() => {
-                estado.classList.remove('visible');
-            }, 2000);
-        }
+    // Establecer carpeta activa
+    function setCarpetaActiva(idCarpeta) {
+      // Si se vuelve a hacer clic sobre la misma carpeta, se cierra (colapsa)
+      if (carpetaActiva === idCarpeta) {
+        carpetaActiva = null;
+        setArchivoActivo(null);
+      } else {
+        carpetaActiva = idCarpeta;
+      }
+      renderizarListaArchivos();
+    }
 
-        // Crear una nueva carpeta
-        function crearCarpeta() {
-            const nombre = prompt('Ingrese el nombre de la carpeta:');
-            if (nombre) {
-                // Verificar si ya existe una carpeta con el mismo nombre
-                const existe = proyecto.carpetas.some(carpeta => carpeta.nombre === nombre);
-                if (existe) {
-                    alert('Ya existe una carpeta con ese nombre.');
-                    return;
-                }
+    // Establecer archivo activo
+    function setArchivoActivo(idArchivo) {
+      archivoActivo = idArchivo;
+      const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
+      const archivo = carpeta?.archivos.find(a => a.id === idArchivo);
+      if (archivo) {
+        // Actualizamos el contenido en el editor CodeMirror
+        codeMirrorEditor.setValue(archivo.contenido);
+        document.getElementById('activeFileName').textContent = archivo.nombre;
+      } else {
+        codeMirrorEditor.setValue('');
+        document.getElementById('activeFileName').textContent = 'Ningún archivo seleccionado';
+      }
+      renderizarListaArchivos();
+      actualizarPrevisualizacion();
+    }
 
-                proyecto.carpetas.push({
-                    id: Date.now().toString(),
-                    nombre,
-                    archivos: []
-                });
-                guardarDatos();
-                renderizarListaArchivos();
-            }
-        }
+    // Actualizar contenido del archivo
+    function actualizarContenidoArchivo(contenido) {
+      if (!archivoActivo || !carpetaActiva) return;
+      const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
+      const archivo = carpeta?.archivos.find(a => a.id === archivoActivo);
+      if (archivo) {
+        archivo.contenido = contenido;
+        guardarDatos();
+        actualizarPrevisualizacion();
+      }
+    }
 
-        // Crear un nuevo archivo
-        function crearArchivo() {
-            if (!carpetaActiva) {
-                alert('Por favor, selecciona una carpeta primero.');
-                return;
-            }
+    // Alternar previsualización
+    function togglePreview() {
+      const preview = document.getElementById('preview');
+      preview.classList.toggle('visible');
+      actualizarPrevisualizacion();
+    }
 
-            const nombre = prompt('Ingrese el nombre del archivo (incluya la extensión: .html, .css o .js):');
-            if (!nombre) return;
+    // Actualizar previsualización
+    function actualizarPrevisualizacion() {
+      if (!carpetaActiva) return;
+      const preview = document.getElementById('preview');
+      if (!preview.classList.contains('visible')) return;
+      const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
+      if (!carpeta) return;
+      const archivoHTML = carpeta.archivos.find(a => a.nombre.endsWith('.html'))?.contenido || '';
+      const archivoCSS = carpeta.archivos.find(a => a.nombre.endsWith('.css'))?.contenido || '';
+      const archivoJS = carpeta.archivos.find(a => a.nombre.endsWith('.js'))?.contenido || '';
+      const contenidoPrevisualizacion = `
+        <style>
+          ${archivoCSS}
+        </style>
+        ${archivoHTML}
+        <script>
+          ${archivoJS}
+        <\/script>
+      `;
+      document.getElementById('previewFrame').srcdoc = contenidoPrevisualizacion;
+    }
 
-            const extension = nombre.split('.').pop()?.toLowerCase();
-            if (!['html', 'css', 'js'].includes(extension)) {
-                alert('Solo se soportan archivos con extensiones .html, .css y .js');
-                return;
-            }
+    // Renderizar la lista de archivos y carpetas
+    function renderizarListaArchivos() {
+      const lista = document.getElementById('fileList');
+      lista.innerHTML = '';
+      proyecto.carpetas.forEach(carpeta => {
+        const carpetaEl = document.createElement('div');
+        carpetaEl.className = 'folder';
+        carpetaEl.innerHTML = `
+          <div class="folder-header" onclick="setCarpetaActiva('${carpeta.id}')">
+            <span>${carpeta.nombre}</span>
+            <button class="btn" onclick="event.stopPropagation(); eliminarCarpeta('${carpeta.id}')" title="Eliminar Carpeta">
+              <svg class="icon" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="folder-content ${carpetaActiva === carpeta.id ? 'open' : ''}">
+            ${carpeta.archivos.map(archivo => `
+              <div class="file-item ${archivoActivo === archivo.id ? 'active' : ''}" 
+                   onclick="setArchivoActivo('${archivo.id}')">
+                <span>${archivo.nombre}</span>
+                <button class="btn" onclick="event.stopPropagation(); eliminarArchivo('${archivo.id}')" title="Eliminar Archivo">
+                  <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                  </svg>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        lista.appendChild(carpetaEl);
+      });
+    }
 
-            const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
-            if (carpeta) {
-                // Verificar si el archivo ya existe en la carpeta
-                const existe = carpeta.archivos.some(a => a.nombre === nombre);
-                if (existe) {
-                    alert('Ya existe un archivo con ese nombre en la carpeta seleccionada.');
-                    return;
-                }
-
-                const nuevoArchivo = {
-                    id: Date.now().toString(),
-                    nombre,
-                    contenido: '',
-                    tipo: extension
-                };
-                carpeta.archivos.push(nuevoArchivo);
-                guardarDatos();
-                renderizarListaArchivos();
-                setArchivoActivo(nuevoArchivo.id);
-            }
-        }
-
-        // Eliminar un archivo
-        function eliminarArchivo(idArchivo) {
-            if (!confirm('¿Está seguro de que desea eliminar este archivo?')) return;
-
-            const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
-            if (carpeta) {
-                carpeta.archivos = carpeta.archivos.filter(a => a.id !== idArchivo);
-                if (archivoActivo === idArchivo) {
-                    setArchivoActivo(null);
-                }
-                guardarDatos();
-                renderizarListaArchivos();
-            }
-        }
-
-        // Eliminar una carpeta
-        function eliminarCarpeta(idCarpeta) {
-            if (!confirm('¿Está seguro de que desea eliminar esta carpeta y todos sus archivos?')) return;
-
-            proyecto.carpetas = proyecto.carpetas.filter(c => c.id !== idCarpeta);
-            if (carpetaActiva === idCarpeta) {
-                carpetaActiva = null;
-                setArchivoActivo(null);
-            }
-            guardarDatos();
-            renderizarListaArchivos();
-        }
-
-        // Establecer carpeta activa
-        function setCarpetaActiva(idCarpeta) {
-            if (carpetaActiva === idCarpeta) {
-                // Si la carpeta ya está activa, desactivarla
-                carpetaActiva = null;
-                setArchivoActivo(null);
-            } else {
-                carpetaActiva = idCarpeta;
-            }
-            renderizarListaArchivos();
-        }
-
-        // Establecer archivo activo
-        function setArchivoActivo(idArchivo) {
-            archivoActivo = idArchivo;
-            const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
-            const archivo = carpeta?.archivos.find(a => a.id === idArchivo);
-            
-            const editor = document.getElementById('editor');
-            const nombreArchivo = document.getElementById('activeFileName');
-            
-            if (archivo) {
-                editor.value = archivo.contenido;
-                nombreArchivo.textContent = archivo.nombre;
-            } else {
-                editor.value = '';
-                nombreArchivo.textContent = 'Ningún archivo seleccionado';
-            }
-            
-            renderizarListaArchivos();
-            actualizarPrevisualizacion();
-        }
-
-        // Actualizar contenido del archivo
-        function actualizarContenidoArchivo(contenido) {
-            if (!archivoActivo || !carpetaActiva) return;
-
-            const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
-            const archivo = carpeta?.archivos.find(a => a.id === archivoActivo);
-            
-            if (archivo) {
-                archivo.contenido = contenido;
-                guardarDatos();
-                actualizarPrevisualizacion();
-            }
-        }
-
-        // Alternar previsualización
-        function togglePreview() {
-            const preview = document.getElementById('preview');
-            preview.classList.toggle('visible');
-            actualizarPrevisualizacion();
-        }
-
-        // Actualizar previsualización
-        function actualizarPrevisualizacion() {
-            if (!carpetaActiva) return;
-
-            const preview = document.getElementById('preview');
-            if (!preview.classList.contains('visible')) return;
-
-            const carpeta = proyecto.carpetas.find(c => c.id === carpetaActiva);
-            if (!carpeta) return;
-
-            const archivoHTML = carpeta.archivos.find(a => a.nombre.endsWith('.html'))?.contenido || '';
-            const archivoCSS = carpeta.archivos.find(a => a.nombre.endsWith('.css'))?.contenido || '';
-            const archivoJS = carpeta.archivos.find(a => a.nombre.endsWith('.js'))?.contenido || '';
-
-            // Construir el contenido completo de la previsualización
-            const contenidoPrevisualizacion = `
-                <style>
-                    ${archivoCSS}
-                </style>
-                ${archivoHTML}
-                <script>
-                    ${archivoJS}
-                <\/script>
-            `;
-
-            const iframe = document.getElementById('previewFrame');
-            iframe.srcdoc = contenidoPrevisualizacion;
-        }
-
-        // Renderizar la lista de archivos y carpetas
-        function renderizarListaArchivos() {
-            const lista = document.getElementById('fileList');
-            lista.innerHTML = '';
-
-            proyecto.carpetas.forEach(carpeta => {
-                // Elemento de la carpeta
-                const carpetaEl = document.createElement('div');
-                carpetaEl.className = 'folder';
-                carpetaEl.innerHTML = `
-                    <div class="folder-header" onclick="setCarpetaActiva('${carpeta.id}')">
-                        <span>${carpeta.nombre}</span>
-                        <button class="btn" onclick="event.stopPropagation(); eliminarCarpeta('${carpeta.id}')" title="Eliminar Carpeta">
-                            <svg class="icon" viewBox="0 0 24 24">
-                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    ${carpetaActiva === carpeta.id ? `
-                        <div class="folder-content">
-                            ${carpeta.archivos.map(archivo => `
-                                <div class="file-item ${archivoActivo === archivo.id ? 'active' : ''}" 
-                                     onclick="setArchivoActivo('${archivo.id}')">
-                                    <span>${archivo.nombre}</span>
-                                    <button class="btn" onclick="event.stopPropagation(); eliminarArchivo('${archivo.id}')" title="Eliminar Archivo">
-                                        <svg class="icon" viewBox="0 0 24 24">
-                                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                                        </svg>
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                `;
-                lista.appendChild(carpetaEl);
-            });
-        }
-
-        // Alternar pantalla completa para la previsualización
-        function toggleFullScreen() {
-            const preview = document.getElementById('preview');
-            if (!document.fullscreenElement) {
-                preview.requestFullscreen().catch(err => {
-                    alert(`Error al intentar entrar en pantalla completa: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        }
-
-        // Eventos y carga inicial
-        document.getElementById('editor').addEventListener('input', (e) => {
-            actualizarContenidoArchivo(e.target.value);
+    // Alternar pantalla completa para la previsualización
+    function toggleFullScreen() {
+      const preview = document.getElementById('preview');
+      if (!document.fullscreenElement) {
+        preview.requestFullscreen().catch(err => {
+          alert(`Error al intentar entrar en pantalla completa: ${err.message}`);
         });
+      } else {
+        document.exitFullscreen();
+      }
+    }
 
-        // Guardar contenido automáticamente cada vez que se actualiza el editor
-        document.getElementById('editor').addEventListener('input', (e) => {
-            actualizarContenidoArchivo(e.target.value);
-        });
+    // Inicializar CodeMirror
+    function inicializarEditor() {
+      codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+        lineNumbers: true,
+        mode: "htmlmixed",
+        theme: "dracula",
+        lineWrapping: true
+      });
+      // Cada vez que el editor cambie, actualizamos el contenido del archivo activo.
+      codeMirrorEditor.on("change", (instance) => {
+        actualizarContenidoArchivo(instance.getValue());
+      });
+    }
 
-        // Cargar datos al iniciar
-        window.onload = cargarDatosGuardados;
-    </script>
+    // Carga inicial
+    window.onload = function() {
+      cargarDatosGuardados();
+      inicializarEditor();
+    };
+  </script>
 </body>
 </html>
